@@ -1,52 +1,63 @@
 package tokenizer
 
 import (
-	"fmt"
+	//"fmt"
 	io "io/ioutil"
 	r "regexp"
 	s "strings"
+	"errors"
 )
 
-
-var tokenTypes = [...]string{
-	"\bdef\b",
-	"\bend\b",
-	"[a-zA-Z]+",
-	"[0-9]+",
-	"\\(",
-	"\\)",
+var tokenTypes = [...][2]string{
+	[2]string{"def", "\\bdef\\b"},
+	[2]string{"end", "\\bend\\b"},
+	[2]string{"identifier", "\\b[a-zA-Z]+\\b"},
+	[2]string{"integer", "\\b[0-9]+\\b"},
+	[2]string{"oparen", "\\("},
+	[2]string{"cparen", "\\)"},
 }
 
 type Tokenizer struct {
-	file string
-	Tokens []string
+	file   string
+	Tokens []Token
+}
+
+type Token struct {
+	Type  string
+	Value string
 }
 
 func check(e error) {
-    if e != nil {
-        panic(e)
-    }
+	if e != nil {
+		panic(e)
+	}
 }
 
 func (t *Tokenizer) Initialize(fileName string) {
 	dat, err := io.ReadFile(fileName)
-    check(err)
-	t.file = string(dat)
+	check(err)
+	t.file = s.TrimSpace(string(dat))
 }
 
 func (t *Tokenizer) Tokenize() {
-	if len(t.file) == 0 {
-		return 
+	for ;len(t.file) != 0; {
+		token, err := t.FindNextToken()
+		check(err)
+		t.Tokens = append(t.Tokens, *token)
 	}
+}
+
+func (t *Tokenizer) FindNextToken() (*Token, error) {
 	for _, reg := range tokenTypes {
-		exp := r.MustCompile(reg)
-		t.file = s.TrimSpace(t.file)
+		pattern := "\\A(" + reg[1] + ")"
+		exp := r.MustCompile(pattern)
 		loc := exp.FindStringIndex(t.file)
-		if loc != nil && loc[0] == 0 {
-			fmt.Println(t.file[loc[0]:loc[1]])
-			t.Tokens = append(t.Tokens, t.file[loc[0]:loc[1]])
-			t.file = t.file[loc[1]:]
-			t.Tokenize()
+		if loc != nil {
+			value := t.file[loc[0]:loc[1]]
+			t.file = s.TrimSpace(t.file[loc[1]:])
+			token := Token{Type: reg[0], Value: value}
+			return &token, nil
 		}
 	}
+	return nil, errors.New("Couldn't match token on current text in file")
 }
