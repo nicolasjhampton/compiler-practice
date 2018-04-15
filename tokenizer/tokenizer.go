@@ -1,7 +1,6 @@
 package tokenizer
 
 import (
-	//"fmt"
 	io "io/ioutil"
 	r "regexp"
 	s "strings"
@@ -39,12 +38,13 @@ func (t *Tokenizer) Initialize(fileName string) {
 	t.file = s.TrimSpace(string(dat))
 }
 
-func (t *Tokenizer) Tokenize() {
+func (t *Tokenizer) Tokenize() []Token {
 	for ;len(t.file) != 0; {
 		token, err := t.FindNextToken()
 		check(err)
 		t.Tokens = append(t.Tokens, *token)
 	}
+	return t.Tokens
 }
 
 func (t *Tokenizer) FindNextToken() (*Token, error) {

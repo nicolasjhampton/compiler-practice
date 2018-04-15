@@ -2,7 +2,8 @@ package main
 
 import (
 	t "compiler-practice/tokenizer"
-	"fmt"
+	p "compiler-practice/parser"
+	//"fmt"
 )
 
 func check(e error) {
@@ -14,6 +15,8 @@ func check(e error) {
 func main() {
 	tokenizer := t.Tokenizer{}
 	tokenizer.Initialize("./file.lang")
-	tokenizer.Tokenize()
-	fmt.Println(tokenizer.Tokens)
+	tokens := tokenizer.Tokenize()
+	parser := p.Parser{ Tokens: tokens }
+	parser.Parse()
+	//fmt.Println(tokens)
 }
