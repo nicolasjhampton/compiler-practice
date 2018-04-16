@@ -9,3 +9,4 @@ DEF
     NAME: "f"
     ARGS: ["x", "y", "z"]
     BODY:
+        INTEGER_LITERAL: "1"

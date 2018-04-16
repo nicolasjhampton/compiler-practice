@@ -3,7 +3,7 @@ package parser
 import (
 	"fmt"
 	t "compiler-practice/tokenizer"
-	"errors"
+	"strconv"
 )
 
 type Parser struct {
@@ -16,55 +16,54 @@ func check(e error) {
 	}
 }
 
-// type AST struct {
-
-// }
-
-func (p *Parser) Parse() {
-	p.ParseDef()
+type DefNode struct {
+	Name string
+	ArgNames []string
+	Body IntegerNode
 }
 
-func (p *Parser) ParseDef() {
-	name, err := p.Consume("def")
-	identity, err2 := p.Consume("identifier")
-	_, err3 := p.ParseArgNames()
-	body, err4 := p.ParseExpr()
-	end, err5 := p.Consume("end")
-	check(err)
-	check(err2)
-	check(err3)
-	check(err4)
-	check(err5)
-	fmt.Println(*name)
-	fmt.Println(*identity)
-
-	fmt.Println(*body)
-	fmt.Println(*end)
+type IntegerNode struct {
+	Value int
 }
 
-func (p *Parser) ParseExpr() (*t.Token, error) {
+func (p *Parser) Parse() *DefNode {
+	return p.ParseDef()
+}
+
+func (p *Parser) ParseDef() *DefNode {
+	name := p.Consume("def")
+	identity := p.Consume("identifier")
+	args := p.ParseArgNames()
+	body := p.ParseExpr()
+	end := p.Consume("end")
+	dnode := DefNode{ Name: identity.Value, ArgNames: args, Body: *body}
+	return &dnode
+}
+
+func (p *Parser) ParseExpr() *IntegerNode {
 	return p.ParseInteger()
 }
 
-func (p *Parser) ParseInteger() (*t.Token, error) {
-	intr, err := p.Consume("integer")
-	return intr, err
-}
-
-func (p *Parser) ParseArgNames() (*t.Token, error) {
-	_, err := p.Consume("oparen")
+func (p *Parser) ParseInteger() *IntegerNode {
+	intr := p.Consume("integer")
+	num, err := strconv.Atoi(intr.Value)
 	check(err)
-	// Arguments here
-	_, err2 := p.Consume("cparen")
-	check(err2)
-	return nil, nil
+	iNode := IntegerNode{ Value: num }
+	return &iNode
 }
 
-func (p *Parser) Consume(typeExpected string) (*t.Token, error) {
+func (p *Parser) ParseArgNames() []string {
+	_ = p.Consume("oparen")
+	// Arguments here
+	_ = p.Consume("cparen")
+	return []string{}
+}
+
+func (p *Parser) Consume(typeExpected string) *t.Token {
 	token := p.Tokens[0]
 	p.Tokens = p.Tokens[1:]
-	if token.Type == typeExpected {
-		return &token, nil
+	if token.Type != typeExpected {
+		panic(fmt.Sprintf("Expected token type %s but got %s", typeExpected, token.Type))
 	} 
-	return nil, errors.New(fmt.Sprintf("Expected token type %s but got %s", typeExpected, token.Type))
+	return &token
 }
