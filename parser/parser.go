@@ -31,11 +31,11 @@ func (p *Parser) Parse() *DefNode {
 }
 
 func (p *Parser) ParseDef() *DefNode {
-	name := p.Consume("def")
+	_ = p.Consume("def")
 	identity := p.Consume("identifier")
 	args := p.ParseArgNames()
 	body := p.ParseExpr()
-	end := p.Consume("end")
+	_ = p.Consume("end")
 	dnode := DefNode{ Name: identity.Value, ArgNames: args, Body: *body}
 	return &dnode
 }
@@ -53,10 +53,21 @@ func (p *Parser) ParseInteger() *IntegerNode {
 }
 
 func (p *Parser) ParseArgNames() []string {
+	args := []string{}
 	_ = p.Consume("oparen")
 	// Arguments here
+	for ;p.Peek("identifier"); {
+		args = append(args, p.Consume("identifier").Value)
+		if p.Peek("comma") {
+			_ = p.Consume("comma")
+		}
+	}
 	_ = p.Consume("cparen")
-	return []string{}
+	return args
+}
+
+func (p *Parser) Peek(typeExpected string) bool {
+	return p.Tokens[0].Type == typeExpected
 }
 
 func (p *Parser) Consume(typeExpected string) *t.Token {

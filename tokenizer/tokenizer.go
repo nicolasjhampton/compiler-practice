@@ -14,6 +14,7 @@ var tokenTypes = [...][2]string{
 	[2]string{"integer", "\\b[0-9]+\\b"},
 	[2]string{"oparen", "\\("},
 	[2]string{"cparen", "\\)"},
+	[2]string{"comma", "\\,"},
 }
 
 type Tokenizer struct {
