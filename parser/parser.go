@@ -96,7 +96,7 @@ func (p *Parser) ParseArgs(fn nodeFunc) []Node {
 	args := []Node{}
 	fmt.Println(p.Tokens)
 	_ = p.Consume("oparen")
-	for ;p.Peek("identifier", 0); {
+	for ;!p.Peek("cparen", 0); {
 		args = append(args, fn(p))
 		if p.Peek("comma", 0) {
 			_ = p.Consume("comma")
