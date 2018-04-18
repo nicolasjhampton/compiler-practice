@@ -22,17 +22,9 @@ type DefNode struct {
 	Body Node
 }
 
-func (d DefNode) isNode() int {
-	return 1
-}
-
 type CallNode struct {
 	Name Node
 	ArgExprs []Node
-}
-
-func (c CallNode) isNode() int {
-	return 1
 }
 
 type IdentifierNode struct {
@@ -40,44 +32,50 @@ type IdentifierNode struct {
 	Ref Node
 }
 
-func (i IdentifierNode) isNode() int {
-	return 1
-}
-
 type IntegerNode struct {
 	Value int
 }
 
-func (i IntegerNode) isNode() int {
+type Node interface {
+	IsNode() int
+}
+
+func (d DefNode) IsNode() int {
 	return 1
 }
 
-type Node interface {
-	isNode() int
+func (c CallNode) IsNode() int {
+	return 1
+}
+
+func (i IdentifierNode) IsNode() int {
+	return 1
+}
+
+func (i IntegerNode) IsNode() int {
+	return 1
 }
 
 type nodeFunc func(*Parser) Node
 
-func (p *Parser) Parse() *DefNode {
+func (p *Parser) Parse() DefNode {
 	return p.ParseDef()
 }
 
-func (p *Parser) ParseDef() *DefNode {
+func (p *Parser) ParseDef() DefNode {
 	_ = p.Consume("def")
 	identity := ParseIdentifier(p)
-	fmt.Println(p.Tokens)
-	args := p.ParseArgs(ParseIdentifier) //p.ParseArgNames()
+	args := p.ParseArgs(ParseIdentifier)
 	body := ParseExpr(p)
 	_ = p.Consume("end")
 	dnode := DefNode{ Name: identity, ArgNames: args, Body: body }
-	return &dnode
+	return dnode
 }
 
 func ParseExpr(p *Parser) Node {
 	if p.Peek("integer", 0) {
 		return ParseInteger(p)
 	} else if p.Peek("identifier", 0) && p.Peek("oparen", 1) {
-		fmt.Println(p.Tokens)
 		return ParseCall(p)
 	} else if p.Peek("identifier", 0) {
 		return ParseIdentifier(p);
@@ -87,14 +85,13 @@ func ParseExpr(p *Parser) Node {
 
 func ParseCall(p *Parser) CallNode {
 	identity := ParseIdentifier(p)
-	argExprs := p.ParseArgs(ParseExpr) //p.ParseArgExprs();
+	argExprs := p.ParseArgs(ParseExpr)
 	cNode := CallNode{ Name: identity, ArgExprs: argExprs }
 	return cNode
 }
 
 func (p *Parser) ParseArgs(fn nodeFunc) []Node {
 	args := []Node{}
-	fmt.Println(p.Tokens)
 	_ = p.Consume("oparen")
 	for ;!p.Peek("cparen", 0); {
 		args = append(args, fn(p))
@@ -105,32 +102,6 @@ func (p *Parser) ParseArgs(fn nodeFunc) []Node {
 	_ = p.Consume("cparen")
 	return args
 }
-
-// func (p *Parser) ParseArgExprs(fn nodeFunc) []Node {
-// 	args := []Node{}
-// 	_ = p.Consume("oparen")
-// 	for ;p.Peek("identifier", 0); {
-// 		args = append(args, p.ParseExpr())
-// 		if p.Peek("comma", 0) {
-// 			_ = p.Consume("comma")
-// 		}
-// 	}
-// 	_ = p.Consume("cparen")
-// 	return args
-// }
-
-// func (p *Parser) ParseArgNames() []IdentifierNode {
-// 	args := []IdentifierNode{}
-// 	_ = p.Consume("oparen")
-// 	for ;p.Peek("identifier", 0); {
-// 		args = append(args, p.ParseIdentifier())
-// 		if p.Peek("comma", 0) {
-// 			_ = p.Consume("comma")
-// 		}
-// 	}
-// 	_ = p.Consume("cparen")
-// 	return args
-// }
 
 func ParseIdentifier(p *Parser) Node {
 	identity := p.Consume("identifier")

@@ -3,6 +3,8 @@ package main
 import (
 	t "compiler-practice/tokenizer"
 	p "compiler-practice/parser"
+	g "compiler-practice/generator"
+	// "reflect"
 	"fmt"
 )
 
@@ -17,6 +19,12 @@ func main() {
 	tokenizer.Initialize("./file.lang")
 	tokens := tokenizer.Tokenize()
 	parser := p.Parser{ Tokens: tokens }
-	def := parser.Parse()
-	fmt.Println(*def)
+	tree := parser.Parse()
+	
+	// val := reflect.Indirect(reflect.ValueOf(tree))
+	// fmt.Println(*tree)
+	//generator := g.Generator{ Tree: tree }
+	text := g.Generate(tree)
+	fmt.Println(text)
+	
 }
